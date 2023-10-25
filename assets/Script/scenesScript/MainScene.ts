@@ -1,7 +1,7 @@
 import CommonFun from "../commonScript/CommonFun";
 import ConstantOther, { E_STORAGETYPE } from "../commonScript/ConstantOther";
 import Global from "../commonScript/Global";
-
+const wx = window["wx"];
 const { ccclass, property } = cc._decorator;
 
 @ccclass
@@ -35,11 +35,13 @@ export default class MainScene extends cc.Component {
     @property(cc.Label)
     ToolNum: cc.Label[] = [];
     @property(cc.Node)
-    AlertNode:cc.Node=null;
+    AlertNode: cc.Node = null;
     @property(cc.Prefab)
-    MunisGold:cc.Prefab = null;
+    MunisGold: cc.Prefab = null;
     @property(cc.Node)
-    HelpNode:cc.Node=null;
+    HelpNode: cc.Node = null;
+    @property(cc.Node)
+    stopNode: cc.Node = null;
     /**游戏区域的游戏格子，在这个类中用于存放格子的预制体的实例化，在循环创建格子的时候被复制。 */
     Cell: cc.Node = null;//
     /**第一个六边形的位置 */
@@ -54,27 +56,27 @@ export default class MainScene extends cc.Component {
     /**阴影节点 */
     ShoadowNode: cc.Node = null;
     /**原生成坐标 */
-    ariPos: cc.Vec2 =new cc.Vec2(0,-366);
+    ariPos: cc.Vec2 = new cc.Vec2(0, -366);
     /**是否填上数字 */
     FilledGrid: boolean = false;
     /**将要被填入游戏区的数字 */
     FilledPos = new Array(2);
 
-    nickNode:cc.Node=null;
-    avatarNode:cc.Node=null;
+    nickNode: cc.Node = null;
+    avatarNode: cc.Node = null;
     GoldNode: cc.Node = null;
-    ToolNode:cc.Node=null;
+    ToolNode: cc.Node = null;
 
-    CellZindex:number=10;
-    NewNumZindex:number=11;
-    ToolZindex:number=1000;
-    ScoreZindex:number=13;
+    CellZindex: number = 10;
+    NewNumZindex: number = 11;
+    ToolZindex: number = 1000;
+    ScoreZindex: number = 13;
 
-    gameover=false;
+    gameover = false;
     onLoad() {
         let self = this;
         this.ToolNode = cc.find("Canvas/ToolNode");
-        this.ToolNode.zIndex=46;
+        this.ToolNode.zIndex = 46;
         this.nickNode = cc.find("Canvas/PlayerNode").getChildByName("nickName");
         this.avatarNode = cc.find("Canvas/PlayerNode/AvatarMask").children[0].children[0].getChildByName("avatar");
         this.GoldNode = cc.find("Canvas/GoldNode");
@@ -87,7 +89,10 @@ export default class MainScene extends cc.Component {
         this.RotateNode.on(cc.Node.EventType.TOUCH_CANCEL, this.moveCancle, this);
 
         this.RotateNode.zIndex = 46;
-        // this.ariPos = this.RotateNode.getPosition();
+        this.ariPos = this.RotateNode.getPosition();
+
+        console.log(`cc test show winsize : ${cc.winSize}`)
+
         this.schedule(() => {
             let time = Math.random() * 5;
             self.scheduleOnce(() => {
@@ -95,74 +100,74 @@ export default class MainScene extends cc.Component {
             }, time);
         }, 5);
         let data = (cc.sys.localStorage.getItem(E_STORAGETYPE.PlayData))
-        if (data == undefined||data=="") {
+        if (data == undefined || data == "") {
             data = Global.PlayData;
-        }else {
+        } else {
             data = JSON.parse(data);
             let nick = data["PlayInfo"]["playNick"];
             let url = data["PlayInfo"]["playAvatar"];
-            if( cc.sys.platform==cc.sys.WECHAT_GAME){
+            if (cc.sys.platform == cc.sys.WECHAT_GAME) {
                 this.nickNode.getComponent(cc.Label).string = nick;
-                cc.loader.load({url,type:'png'},(err,res)=>{
-                    if(err){
+                cc.loader.load({ url, type: 'png' }, (err, res) => {
+                    if (err) {
                         return;
                     }
                     self.avatarNode.getComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(res);
                 })
             }
-            if(cc.sys.platform == cc.sys.WECHAT_GAME){
+            if (cc.sys.platform == cc.sys.WECHAT_GAME) {
                 Global.PlayData["PlayInfo"]["playAvatar"] = url;
                 Global.PlayData["PlayInfo"]["playNick"] = nick;
                 // cc.sys.localStorage.setItem(E_STORAGETYPE,JSON.stringify(Global.PlayData));
                 wx.setStorage({
                     key: 'PlayData',
                     data: JSON.stringify(Global.PlayData),
-                    success: (result)=>{
+                    success: (result) => {
                         console.log(result);
                     },
-                    fail: (result)=>{
+                    fail: (result) => {
                         console.log(result);
-                        cc.sys.localStorage.setItem(E_STORAGETYPE,JSON.stringify(Global.PlayData));
+                        cc.sys.localStorage.setItem(E_STORAGETYPE, JSON.stringify(Global.PlayData));
                     },
-                    complete: ()=>{}
+                    complete: () => { }
                 });
-            }else{
+            } else {
                 Global.PlayData["PlayInfo"]["playAvatar"] = url;
                 Global.PlayData["PlayInfo"]["playNick"] = nick;
-                cc.sys.localStorage.setItem(E_STORAGETYPE,JSON.stringify(Global.PlayData));
+                cc.sys.localStorage.setItem(E_STORAGETYPE, JSON.stringify(Global.PlayData));
             }
         }
         let Tdata = cc.sys.localStorage.getItem(E_STORAGETYPE.TempData)
-        if (Tdata == undefined||Tdata=="") {
+        if (Tdata == undefined || Tdata == "") {
             Tdata = Global.TempData;
-        }else {
+        } else {
             Global.TempData = JSON.parse(Tdata);
         }
         let gamedata = (cc.sys.localStorage.getItem(E_STORAGETYPE.GameData));
-        if(gamedata==undefined||gamedata==""){
+        if (gamedata == undefined || gamedata == "") {
             gamedata = Global.GameData;
-        }else{
+        } else {
             Global.TempData.tempPlayInfo.playScore = Global.PlayData.PlayInfo.playScore
             gamedata = JSON.parse(gamedata)
-            self.currentMaxNum= gamedata.chessPos[1][0]
-            for(let i=1;i<gamedata.chessPos.length;i++){
-                for(let j=0;j<gamedata.chessPos[i].length;j++){
+            self.currentMaxNum = gamedata.chessPos[1][0]
+            for (let i = 1; i < gamedata.chessPos.length; i++) {
+                for (let j = 0; j < gamedata.chessPos[i].length; j++) {
                     let num = gamedata.chessPos[i][j];
-                    if(!(num==null)){
-                        let attr = {theNum:num};
-                        if(num>self.currentMaxNum){
+                    if (!(num == null)) {
+                        let attr = { theNum: num };
+                        if (num > self.currentMaxNum) {
                             self.currentMaxNum = num;
                         }
-                        if(num<self.currentMinNum){
+                        if (num < self.currentMinNum) {
                             self.currentMinNum = num;
                         }
-                        let isFilled={isFilled:true};
+                        let isFilled = { isFilled: true };
                         let row = -Math.floor((i - 1) / 2);//向下取整
-                        let n= i;
+                        let n = i;
                         let sn = j
-                        let tag = {tag: { n, row, sn }}
-                        let color:cc.Node;
-                        if(num%10==0){
+                        let tag = { tag: { n, row, sn } }
+                        let color: cc.Node;
+                        if (num % 10 == 0) {
                             color = cc.instantiate(this.Chesses[3]);
                             color.attr(attr);
                             color.attr(tag);
@@ -171,15 +176,15 @@ export default class MainScene extends cc.Component {
                             this.allCellPos[i][j][0].attr(isFilled);
                             this.allCellPos[i][j][0].addChild(color);
                         }
-                        else{
-                            if(num>self.currentMaxNum){
+                        else {
+                            if (num > self.currentMaxNum) {
                                 self.currentMaxNum = num;
                             }
-                            if(num<self.currentMinNum){
+                            if (num < self.currentMinNum) {
                                 self.currentMinNum = num;
                             }
-                            switch(num%3){
-                                case 0:{
+                            switch (num % 3) {
+                                case 0: {
                                     color = cc.instantiate(this.Chesses[0]);
                                     color.attr(attr);
                                     color.attr(tag);
@@ -189,7 +194,7 @@ export default class MainScene extends cc.Component {
                                     this.allCellPos[i][j][0].addChild(color);
                                     break;
                                 }
-                                case 1:{
+                                case 1: {
                                     color = cc.instantiate(this.Chesses[1]);
                                     color.attr(attr);
                                     color.attr(tag);
@@ -199,7 +204,7 @@ export default class MainScene extends cc.Component {
                                     this.allCellPos[i][j][0].addChild(color);
                                     break;
                                 }
-                                case 2:{
+                                case 2: {
                                     color = cc.instantiate(this.Chesses[2]);
                                     color.attr(attr);
                                     color.attr(tag);
@@ -215,6 +220,21 @@ export default class MainScene extends cc.Component {
                 }
             }
         }
+
+        if (cc.sys.platform != cc.sys.WECHAT_GAME) {
+            this.node.getChildByName("PlayerNode").active = false;
+        }
+    }
+
+    start() {
+        let self = this;
+
+        let data = (cc.sys.localStorage.getItem(E_STORAGETYPE.PlayData));
+        if (data == undefined || data == "") {
+            data = Global.PlayData;
+        } else {
+            data = JSON.parse(data);
+        }
         this.generateChess();
         this.GoldNode.children[0].getComponent(cc.Label).string = data.PlayInfo.playGold.toString();
         this.ScoreNode.children[0].getComponent(cc.Label).string = data.PlayInfo.playScore.toString();
@@ -223,19 +243,7 @@ export default class MainScene extends cc.Component {
         this.ToolNum[2].string = data.PlayInfo.playTool.reGene.toString();
         this.ScoreNode.children[1].getComponent(cc.Label).string = Global.PlayData.PlayInfo.playScore.toString();
 
-        if(cc.sys.platform!=cc.sys.WECHAT_GAME){
-            this.node.getChildByName("PlayerNode").active = false;
-        }
     }
-
-    start(){
-        let self = this;
-        
-    }
-    // CAncle(){
-    //     this.MoveEnd()
-    //     console.log("this is cancle");
-    // }
     /**游戏区生成函数 */
     generaterCell() {
         // let a = Math.pow(4, 0.5);
@@ -431,21 +439,21 @@ export default class MainScene extends cc.Component {
     }
 
     /**当前游戏的最大值 */
-    currentMaxNum=3;
-    currentMinNum=1;
-    FindMinNum(){
-        let tempMinnum=0
-        let isT=false;
+    currentMaxNum = 3;
+    currentMinNum = 1;
+    FindMinNum() {
+        let tempMinnum = 0
+        let isT = false;
         for (let i = 1; i < this.allCellPos.length; i++) {
             for (let j = 0; j < this.allCellPos[i].length; j++) {
-                if(this.allCellPos[i][j][0].childrenCount>1){
+                if (this.allCellPos[i][j][0].childrenCount > 1) {
                     let num = this.allCellPos[i][j][0].children[1].theNum;
-                    if(num!=null||num!=undefined){
-                        if(!isT){
-                            tempMinnum =num;
-                            isT=true;
+                    if (num != null || num != undefined) {
+                        if (!isT) {
+                            tempMinnum = num;
+                            isT = true;
                         }
-                        if(num<tempMinnum){
+                        if (num < tempMinnum) {
                             tempMinnum = num;
                         }
                     }
@@ -453,7 +461,7 @@ export default class MainScene extends cc.Component {
             }
         }
         this.currentMinNum = tempMinnum;
-        if(this.currentMinNum==this.currentMaxNum||this.currentMinNum==0){
+        if (this.currentMinNum == this.currentMaxNum || this.currentMinNum == 0) {
             this.currentMinNum = 1;
         }
     }
@@ -479,14 +487,14 @@ export default class MainScene extends cc.Component {
         switch (this.FilledGridCount) {
             case 0: {//gameover
                 // console.log("gameover");
-                this.gameover=true;
+                this.gameover = true;
                 let node = cc.find("Canvas/StopNode");
-                node.x=0;
+                node.x = 0;
                 node.active = true;
                 node.zIndex = self.ToolZindex;
                 node.children[3].children[0].active = false;
                 let titleover = node.getChildByName("gameover");
-                titleover.runAction(cc.sequence(cc.scaleBy(0.15,1.5,1.5),cc.scaleBy(0.2,0.85,0.85),cc.scaleBy(0.1,1,1)));
+                titleover.runAction(cc.sequence(cc.scaleBy(0.15, 1.5, 1.5), cc.scaleBy(0.2, 0.85, 0.85), cc.scaleBy(0.1, 1, 1)));
                 break;
             }
             case 1: {//generate one number grid，这里只生成一个棋子
@@ -501,31 +509,31 @@ export default class MainScene extends cc.Component {
             }
         }
 
-        function numPoolFun(GeneNumPool):number{
+        function numPoolFun(GeneNumPool): number {
 
-            let poolSn=0;
-            let numpool1=new Array(),numpool2=new Array(),numpool3=new Array();
-            for(let px=0;px<3;px++){numpool1[px]=GeneNumPool[px];}
-            for(let px=numpool1.length;px<GeneNumPool.length-3;px++){numpool2[px]=GeneNumPool[px];}
-            for(let px=GeneNumPool.length-3;px<GeneNumPool.length;px++){numpool3[px]=GeneNumPool[px];}
+            let poolSn = 0;
+            let numpool1 = new Array(), numpool2 = new Array(), numpool3 = new Array();
+            for (let px = 0; px < 3; px++) { numpool1[px] = GeneNumPool[px]; }
+            for (let px = numpool1.length; px < GeneNumPool.length - 3; px++) { numpool2[px] = GeneNumPool[px]; }
+            for (let px = GeneNumPool.length - 3; px < GeneNumPool.length; px++) { numpool3[px] = GeneNumPool[px]; }
             let geneRom = Math.random();
-            if(geneRom<0.15){
-                poolSn=0;
-            }else if(geneRom<=0.95){
-                poolSn=1;
-            }else{poolSn=2;}
+            if (geneRom < 0.15) {
+                poolSn = 0;
+            } else if (geneRom <= 0.95) {
+                poolSn = 1;
+            } else { poolSn = 2; }
 
-            let subgenenum=0;
-            switch(poolSn){
-                case 0:{
+            let subgenenum = 0;
+            switch (poolSn) {
+                case 0: {
                     subgenenum = parseInt((Math.random() * numpool1.length).toString());
                     break;
                 }
-                case 1:{
+                case 1: {
                     subgenenum = parseInt((Math.random() * numpool2.length).toString());
                     break;
                 }
-                case 2:{
+                case 2: {
                     subgenenum = parseInt((Math.random() * numpool3.length).toString());
                     break;
                 }
@@ -536,25 +544,25 @@ export default class MainScene extends cc.Component {
             let genePos = new Array<cc.Vec2>(2);
             // let GeneNumPool = [1, 2, 3, 4, 5, 6, 7, 8, 9]
             console.log(self.currentMinNum);
-            let GeneNumPool = self.ChangeGeneMumPool(self.currentMinNum,self.currentMaxNum,self.FilledGridCount);
+            let GeneNumPool = self.ChangeGeneMumPool(self.currentMinNum, self.currentMaxNum, self.FilledGridCount);
             // console.log(GeneNumPool);
             // let genedNum = parseInt((Math.random() * GeneNumPool.length).toString());
             let geneKind = 0;
             let genedNum = numPoolFun(GeneNumPool);
-            
-            if( GeneNumPool[genedNum]%10==0){
-                geneKind=3;
-            }else{
+
+            if (GeneNumPool[genedNum] % 10 == 0) {
+                geneKind = 3;
+            } else {
                 geneKind = GeneNumPool[genedNum] % 3;
             }
             let geneID = [0, 1, 2, 3];
-            if(count==1){
+            if (count == 1) {
                 genedNumGrid = new Array(1);
-                genedNumGrid[0]=new cc.Node();
-            }else{
+                genedNumGrid[0] = new cc.Node();
+            } else {
                 genedNumGrid = new Array(2);
-                genedNumGrid[0]=new cc.Node();
-                genedNumGrid[1]=new cc.Node();
+                genedNumGrid[0] = new cc.Node();
+                genedNumGrid[1] = new cc.Node();
             }
             if (!count || count == 1) {
                 genedNumGrid[0] = cc.instantiate(self.Chesses[geneID[geneKind]]);
@@ -578,9 +586,9 @@ export default class MainScene extends cc.Component {
                 GeneNumPool.splice(genedNum, 1)
                 // genedNum = parseInt((Math.random() * GeneNumPool.length).toString());
                 genedNum = numPoolFun(GeneNumPool);
-                if( GeneNumPool[genedNum]%10==0){
-                    geneKind=3;
-                }else{
+                if (GeneNumPool[genedNum] % 10 == 0) {
+                    geneKind = 3;
+                } else {
                     geneKind = GeneNumPool[genedNum] % 3;
                 }
                 genedNumGrid[1] = cc.instantiate(self.Chesses[geneID[geneKind]]);
@@ -593,8 +601,10 @@ export default class MainScene extends cc.Component {
                 GeneNumPool.splice(genedNum, 1)
                 genedNumGrid[0].x = 39;
                 genedNumGrid[1].x = -39
-                genePos[0] = genedNumGrid[0].position.rotate(rotate * Math.PI / 180);
-                genePos[1] = genedNumGrid[1].position.rotate(rotate * Math.PI / 180);
+                let temp1: cc.Vec2 = genedNumGrid[0].position;
+                let temp2: cc.Vec2 = genedNumGrid[1].position;
+                genePos[0] = temp1.rotate(rotate * Math.PI / 180);
+                genePos[1] = temp2.rotate(rotate * Math.PI / 180);
             }
             for (let i = genedNumGrid.length - 1; i >= 0; i--) {
                 if (genedNumGrid[i] == undefined || genedNumGrid[i] == null) {
@@ -608,18 +618,18 @@ export default class MainScene extends cc.Component {
         }
     }
 
-    ChangeGeneMumPool(cMinNum,cMaxNum,FilledGrid):Array<number>{
-        let newPool=new Array();
+    ChangeGeneMumPool(cMinNum, cMaxNum, FilledGrid): Array<number> {
+        let newPool = new Array();
         // if(cMinNum<5)cMinNum=1;
-        if(FilledGrid>25){
-            
-        }else if(FilledGrid>8){
-            cMinNum-=2;
-            if(cMinNum<1)cMinNum=1;
-        }else{
-            if(cMinNum>6){cMinNum/=2;}
+        if (FilledGrid > 25) {
+
+        } else if (FilledGrid > 8) {
+            cMinNum -= 2;
+            if (cMinNum < 1) cMinNum = 1;
+        } else {
+            if (cMinNum > 6) { cMinNum /= 2; }
         }
-        for(let i=cMinNum;i<cMinNum+8;i++){
+        for (let i = cMinNum; i < cMinNum + 8; i++) {
             newPool.push(i);
         }
         newPool.push(cMaxNum);
@@ -627,7 +637,7 @@ export default class MainScene extends cc.Component {
     }
 
     //移动的RotateNode显示在手指上
-    isAdd=false;
+    isAdd = false;
     /**
      * 移动函数
      * @param event 
@@ -636,9 +646,9 @@ export default class MainScene extends cc.Component {
         let self = this;
         let touchpos = event.touch.getDelta();
         // this.RotateNode.getComponent(cc.Widget).enabled = false;
-        if(!this.isAdd){
-            this.RotateNode.y+=60;
-            this.isAdd=true;
+        if (!this.isAdd) {
+            // this.RotateNode.y+=60;
+            this.isAdd = true;
         }
         this.RotateNode.x += touchpos.x;
         this.RotateNode.y += touchpos.y;
@@ -681,12 +691,12 @@ export default class MainScene extends cc.Component {
         }
     }
 
-    moveCancle(event){
+    moveCancle(event) {
         this.RotateNode.setPosition(this.ariPos);
         this.MoveEnd(event);
     }
 
-    isRota=false;
+    isRota = false;
     /**
      * 移动结束
      * @param event 
@@ -704,7 +714,7 @@ export default class MainScene extends cc.Component {
             this.RotateNode.off(cc.Node.EventType.TOUCH_CANCEL, this.moveCancle, this);
             this.RotateNode.off(cc.Node.EventType.TOUCH_MOVE, this.Move, this);
             this.RotateNode.setPosition(this.ariPos);
-            CommonFun.RotaFun(this.RotateNode,undefined,self,self.ariPos);
+            CommonFun.RotaFun(this.RotateNode, undefined, self, self.ariPos);
             // console.log("旋转");
         }
         else if (!this.FilledGrid) {//当前格子有数字，返回
@@ -713,35 +723,35 @@ export default class MainScene extends cc.Component {
         else if (this.FilledPos.length < 1) {//需要填充的格子不够，返回
             this.RotateNode.setPosition(this.ariPos);
             // console.log("ratote 3_2 pos is"+this.RotateNode.getPosition());
-        }else {
-                for (let i = 0; i < this.FilledPos.length; i++) {
-                    if (this.FilledPos[i] == null || this.FilledPos[i] == undefined) {
-                        // console.log("ratote 3_1 pos is"+this.RotateNode.getPosition());
-                        this.RotateNode.setPosition(this.ariPos);//不在格子区，返回
-                    }
-                    else if (this.FilledPos.length != this.RotateNode.childrenCount) {
-                        this.FilledPos[i].children[0].active = false;
-                        // console.log("ratote 4_1 pos is"+this.RotateNode.getPosition());
-                        this.RotateNode.setPosition(this.ariPos);
-                    }
-                    else if (!this.FilledPos[i].isFilled) {
-                        this.FilledPos[i].isFilled = true;
-                        this.RotateNode.children[i].setPosition(0, 0);
-                        this.RotateNode.children[i].tag = this.FilledPos[i].tag;
-                        this.RotateNode.children[i].parent = this.FilledPos[i];
-                        fpos[fpos.length] = this.FilledPos[i];
-                        this.FilledPos.shift();
-                        i = -1;
-                        this.FilledGridCount -= 1;
-                        this.RotateNode.setPosition(this.ariPos);
-                        // console.log("ratote 5 pos is"+this.RotateNode.getPosition());
-                    } else {
-                        this.FilledPos[i].children[0].active = false;
-                        this.RotateNode.setPosition(this.ariPos);
-                        // console.log("ratote 6 pos is"+this.RotateNode.getPosition());
-                    }
+        } else {
+            for (let i = 0; i < this.FilledPos.length; i++) {
+                if (this.FilledPos[i] == null || this.FilledPos[i] == undefined) {
+                    // console.log("ratote 3_1 pos is"+this.RotateNode.getPosition());
+                    this.RotateNode.setPosition(this.ariPos);//不在格子区，返回
+                }
+                else if (this.FilledPos.length != this.RotateNode.childrenCount) {
+                    this.FilledPos[i].children[0].active = false;
+                    // console.log("ratote 4_1 pos is"+this.RotateNode.getPosition());
+                    this.RotateNode.setPosition(this.ariPos);
+                }
+                else if (!this.FilledPos[i].isFilled) {
+                    this.FilledPos[i].isFilled = true;
+                    this.RotateNode.children[i].setPosition(0, 0);
+                    this.RotateNode.children[i]["tag"] = this.FilledPos[i].tag;
+                    this.RotateNode.children[i].parent = this.FilledPos[i];
+                    fpos[fpos.length] = this.FilledPos[i];
+                    this.FilledPos.shift();
+                    i = -1;
+                    this.FilledGridCount -= 1;
+                    this.RotateNode.setPosition(this.ariPos);
+                    // console.log("ratote 5 pos is"+this.RotateNode.getPosition());
+                } else {
+                    this.FilledPos[i].children[0].active = false;
+                    this.RotateNode.setPosition(this.ariPos);
+                    // console.log("ratote 6 pos is"+this.RotateNode.getPosition());
                 }
             }
+        }
         for (let i = 0; i < fpos.length; i++) {
             let tag = fpos[i].children[1].tag;
             if (tag == undefined) {
@@ -749,7 +759,7 @@ export default class MainScene extends cc.Component {
             }
             self.Eliminate(tag, fpos.length, i);
         }
-        self.isAdd=false;
+        self.isAdd = false;
         this.FilledGrid = false;
         this.FilledPos = []
         this.RotateNode.setPosition(this.ariPos);
@@ -848,7 +858,7 @@ export default class MainScene extends cc.Component {
                             try {
                                 subElinate(theNode[0].children[1], rightNode[0].children[1], downRightIsFilled);
                             }
-                            catch{
+                            catch {
                                 self.generateChess();
                             }
                         }
@@ -863,7 +873,7 @@ export default class MainScene extends cc.Component {
                             try {
                                 subElinate(theNode[0].children[1], leftNode[0].children[1], downLeftIsFilled);
                             }
-                            catch{
+                            catch {
                                 self.generateChess();
                             }
                         }
@@ -1036,7 +1046,7 @@ export default class MainScene extends cc.Component {
             addScore.destroy();
         }, 0.51);
         Global.TempData.tempPlayInfo.playScore += addNum;
-        let getGold = parseInt((addNum/2).toString());
+        let getGold = parseInt((addNum / 2).toString());
         Global.PlayData.PlayInfo.playGold += getGold;
         this.GoldNode.children[0].getComponent(cc.Label).string = Global.PlayData.PlayInfo.playGold.toString();
         if (Global.PlayData.PlayInfo.playScore < Global.TempData.tempPlayInfo.playScore) {
@@ -1065,14 +1075,14 @@ export default class MainScene extends cc.Component {
         let colorNum = Addnum % 3;
         let thetag = { tag: null };
         let num = { theNum: 0 };
-        if(Addnum%10==0){
-            colorNum=3;
+        if (Addnum % 10 == 0) {
+            colorNum = 3;
         }
         let addedNode = cc.instantiate(this.Chesses[geneID[colorNum]]);
         addedNode.children[0].getComponent(cc.Label).string = Addnum;
         addedNode.on(cc.Node.EventType.TOUCH_END, self.UseToolListener, self);
         num.theNum = Addnum;
-        if(Addnum>self.currentMaxNum){
+        if (Addnum > self.currentMaxNum) {
             self.currentMaxNum = Addnum;
         }
         thetag.tag = tag;
@@ -1099,41 +1109,41 @@ export default class MainScene extends cc.Component {
     }
 
 
-    isUseTool=false;
+    isUseTool = false;
     UseTool(event, customEventTarget) {
         let self = this;
         let BtnNode = cc.find("Canvas/ToolBtnNode");
         switch (customEventTarget) {
             case "1": {
-                if(Global.PlayData.PlayInfo.playTool.oneKey>0){
+                if (Global.PlayData.PlayInfo.playTool.oneKey > 0) {
                     oneKeyE();
-                }else{
+                } else {
                     let gold = parseInt(self.GoldNode.children[0].getComponent(cc.Label).string);
                     let buyonekey = 700
                     console.log(gold)
                     console.log(buyonekey)
                     console.log("道具不够")
-                    if(gold<buyonekey){
+                    if (gold < buyonekey) {
                         console.log("金币不够，无法购买")
-                        self.AlertNode.active=true;
+                        self.AlertNode.active = true;
                         self.AlertNode.runAction(cc.fadeOut(1));
-                        self.scheduleOnce(()=>{
-                            self.AlertNode.active=false;
-                            self.AlertNode.opacity=255;
-                        },1);
-                    }else{
-                        self.ToolKind="reGene"
+                        self.scheduleOnce(() => {
+                            self.AlertNode.active = false;
+                            self.AlertNode.opacity = 255;
+                        }, 1);
+                    } else {
+                        self.ToolKind = "reGene"
                         console.log("买道具");
-                        Global.PlayData.PlayInfo.playGold-=ConstantOther.Buy_onKey;
+                        Global.PlayData.PlayInfo.playGold -= ConstantOther.Buy_onKey;
                         self.GoldNode.children[0].getComponent(cc.Label).string = Global.PlayData.PlayInfo.playGold.toString();
                         let node = cc.instantiate(self.MunisGold);
-                        node.getComponent(cc.Label).string = "-"+ConstantOther.Buy_onKey;
+                        node.getComponent(cc.Label).string = "-" + ConstantOther.Buy_onKey;
                         self.GoldNode.addChild(node);
-                        node.runAction(cc.spawn(cc.moveBy(1,0,-100),cc.fadeOut(1)));
-                        self.scheduleOnce(()=>{
+                        node.runAction(cc.spawn(cc.moveBy(1, 0, -100), cc.fadeOut(1)));
+                        self.scheduleOnce(() => {
                             node.removeFromParent();
                             node.destroy();
-                        },1.01);
+                        }, 1.01);
                         oneKeyE();
                     }
                 }
@@ -1155,46 +1165,46 @@ export default class MainScene extends cc.Component {
             }
             case "3": {
                 //后期加上消耗金币
-                self.ToolKind="reGene"
+                self.ToolKind = "reGene"
                 if (Global.PlayData.PlayInfo.playTool.reGene > 0) {
                     Global.PlayData.PlayInfo.playTool.reGene -= 1;
                     self.ToolNum[2].string = Global.PlayData.PlayInfo.playTool.reGene.toString();
                     this.generateChess();
-                    self.ToolKind="oneKey"
+                    self.ToolKind = "oneKey"
                 }
                 else {
                     console.log("道具不够")
-                    if(Global.PlayData.PlayInfo.playGold<ConstantOther.Buy_reGene){
+                    if (Global.PlayData.PlayInfo.playGold < ConstantOther.Buy_reGene) {
                         console.log("金币不够，无法购买")
-                        self.AlertNode.active=true;
+                        self.AlertNode.active = true;
                         self.AlertNode.runAction(cc.fadeOut(1));
-                        self.scheduleOnce(()=>{
-                            self.AlertNode.active=false;
-                            self.AlertNode.opacity=255;
-                        },1);
-                    }else{
-                        self.ToolKind="oneKey"
+                        self.scheduleOnce(() => {
+                            self.AlertNode.active = false;
+                            self.AlertNode.opacity = 255;
+                        }, 1);
+                    } else {
+                        self.ToolKind = "oneKey"
                         console.log("买道具")
-                        Global.PlayData.PlayInfo.playGold-=ConstantOther.Buy_reGene;
+                        Global.PlayData.PlayInfo.playGold -= ConstantOther.Buy_reGene;
                         self.GoldNode.children[0].getComponent(cc.Label).string = Global.PlayData.PlayInfo.playGold.toString();
                         let node = cc.instantiate(self.MunisGold);
-                        node.getComponent(cc.Label).string = "-"+ConstantOther.Buy_reGene;
+                        node.getComponent(cc.Label).string = "-" + ConstantOther.Buy_reGene;
                         self.GoldNode.addChild(node);
-                        node.runAction(cc.spawn(cc.moveBy(1,0,-100),cc.fadeOut(1)));
-                        self.scheduleOnce(()=>{
+                        node.runAction(cc.spawn(cc.moveBy(1, 0, -100), cc.fadeOut(1)));
+                        self.scheduleOnce(() => {
                             node.removeFromParent();
                             node.destroy();
-                        },1.01);
+                        }, 1.01);
                         this.generateChess();
                     }
                 }
                 break;
             }
             case "4": {
-                if(Global.PlayData.PlayInfo.playTool.hammer>0){
-                    self.ToolKind="Hammer"
+                if (Global.PlayData.PlayInfo.playTool.hammer > 0) {
+                    self.ToolKind = "Hammer"
                     hammerE()
-                }else{
+                } else {
                     let gold = parseInt(self.GoldNode.children[0].getComponent(cc.Label).string);
                     let buyhammer = 700
                     // console.log(gold)
@@ -1202,28 +1212,28 @@ export default class MainScene extends cc.Component {
                     console.log("道具不够")
                     // console.log(Global.PlayData.PlayInfo.playGold)
                     // console.log(ConstantOther.Buy_hammer)
-                    if(gold<buyhammer){
+                    if (gold < buyhammer) {
                         console.log("金币不够，无法购买")
-                        self.AlertNode.active=true;
+                        self.AlertNode.active = true;
                         self.AlertNode.runAction(cc.fadeOut(1));
-                        self.scheduleOnce(()=>{
-                            self.AlertNode.active=false;
-                            self.AlertNode.opacity=255;
-                        },1);
+                        self.scheduleOnce(() => {
+                            self.AlertNode.active = false;
+                            self.AlertNode.opacity = 255;
+                        }, 1);
                     }
-                    else{
+                    else {
                         console.log("买道具")
-                        Global.PlayData.PlayInfo.playGold-=ConstantOther.Buy_hammer;
+                        Global.PlayData.PlayInfo.playGold -= ConstantOther.Buy_hammer;
                         self.GoldNode.children[0].getComponent(cc.Label).string = Global.PlayData.PlayInfo.playGold.toString();
                         let node = cc.instantiate(self.MunisGold);
-                        node.getComponent(cc.Label).string = "-"+ConstantOther.Buy_hammer;
+                        node.getComponent(cc.Label).string = "-" + ConstantOther.Buy_hammer;
                         self.GoldNode.addChild(node);
-                        node.runAction(cc.spawn(cc.moveBy(1,0,-100),cc.fadeOut(1)));
-                        self.scheduleOnce(()=>{
+                        node.runAction(cc.spawn(cc.moveBy(1, 0, -100), cc.fadeOut(1)));
+                        self.scheduleOnce(() => {
                             node.removeFromParent();
                             node.destroy();
-                        },1.01);
-                        self.ToolKind="Hammer"
+                        }, 1.01);
+                        self.ToolKind = "Hammer"
                         hammerE()
                     }
                 }
@@ -1231,20 +1241,20 @@ export default class MainScene extends cc.Component {
                 break;
             }
         }
-        function oneKeyE(){
+        function oneKeyE() {
             console.log("使用道具");
-            self.ToolKind="oneKey"
-            if(self.isUseTool){
+            self.ToolKind = "oneKey"
+            if (self.isUseTool) {
                 return;
             }
             self.isUseTool = true;
-            for(let i=0;i<BtnNode.childrenCount;i++){
+            for (let i = 0; i < BtnNode.childrenCount; i++) {
                 BtnNode.children[i].getComponent(cc.Button).enabled = false;
             }
-            if(Global.PlayData.PlayInfo.playTool.oneKey>0){
+            if (Global.PlayData.PlayInfo.playTool.oneKey > 0) {
                 Global.PlayData.PlayInfo.playTool.oneKey -= 1;
             }
-            else{
+            else {
                 Global.PlayData.PlayInfo.playTool.oneKey = 0;
             }
             self.ToolNum[0].string = Global.PlayData.PlayInfo.playTool.oneKey.toString();
@@ -1258,29 +1268,29 @@ export default class MainScene extends cc.Component {
                 let cellAni;
                 for (let i = nodes.length - 1; i > -1; i--) {
                     if (nodes[i][0].children[1] != undefined) {
-                        if (i == nodes.length-1) {
+                        if (i == nodes.length - 1) {
                             centerEx = cc.instantiate(self.CenterExplo);
-                            centerEx.zIndex=self.ToolZindex;
+                            centerEx.zIndex = self.ToolZindex;
                             centAni = centerEx.getComponent(cc.Animation);
                             nodes[i][0].addChild(centerEx);
                             centerEx.setPosition(0, 0);
-                                centAni.play();
-                                centAni.on("finished", () => {
-                                    centerEx.removeFromParent();
-                                    centerEx.destroy();
-                                    nodes[i][0].children[0].active = false;
-                                    if(nodes[i][0].childrenCount>1){
-                                        nodes[i][0].children[1].removeFromParent();
-                                    }
-                                    nodes[i][0].isFilled = false;
-                                    ConstantOther.GLOBAL_EVENTMGR.off("oneKey");
-                                    for(let i=0;i<BtnNode.childrenCount;i++){
-                                        BtnNode.children[i].getComponent(cc.Button).enabled = true;
-                                    }
-                                });
-                            
+                            centAni.play();
+                            centAni.on("finished", () => {
+                                centerEx.removeFromParent();
+                                centerEx.destroy();
+                                nodes[i][0].children[0].active = false;
+                                if (nodes[i][0].childrenCount > 1) {
+                                    nodes[i][0].children[1].removeFromParent();
+                                }
+                                nodes[i][0].isFilled = false;
+                                ConstantOther.GLOBAL_EVENTMGR.off("oneKey");
+                                for (let i = 0; i < BtnNode.childrenCount; i++) {
+                                    BtnNode.children[i].getComponent(cc.Button).enabled = true;
+                                }
+                            });
+
                         } else {
-                            self.scheduleOnce(()=>{
+                            self.scheduleOnce(() => {
                                 cellEx = cc.instantiate(self.CellExplo);
                                 cellAni = cellEx.getComponent(cc.Animation);
                                 self.node.addChild(cellEx);
@@ -1290,18 +1300,18 @@ export default class MainScene extends cc.Component {
                                     cellEx.removeFromParent();
                                     cellEx.destroy();
                                     nodes[i][0].children[0].active = false;
-                                    if(nodes[i][0].childrenCount>1){
-                                        if(nodes[i][0].childrenCount>1){
+                                    if (nodes[i][0].childrenCount > 1) {
+                                        if (nodes[i][0].childrenCount > 1) {
                                             nodes[i][0].children[1].removeFromParent();
                                         }
                                     }
                                     nodes[i][0].isFilled = false;
                                     ConstantOther.GLOBAL_EVENTMGR.off("oneKey");
-                                    for(let i=0;i<BtnNode.childrenCount;i++){
+                                    for (let i = 0; i < BtnNode.childrenCount; i++) {
                                         BtnNode.children[i].getComponent(cc.Button).enabled = true;
                                     }
                                 });
-                            },0.5);
+                            }, 0.5);
                         }
                         addNum += nodes[i][0].children[1].theNum;
                         self.FilledGridCount += 1;
@@ -1310,20 +1320,20 @@ export default class MainScene extends cc.Component {
                 self.AddNum(nodes[nodes.length - 1][0], null, addNum)
             });
         }
-        function hammerE(){
-            for(let i=0;i<BtnNode.childrenCount;i++){
+        function hammerE() {
+            for (let i = 0; i < BtnNode.childrenCount; i++) {
                 BtnNode.children[i].getComponent(cc.Button).enabled = false;
             }
-            if(self.isUseTool){
+            if (self.isUseTool) {
                 return;
             }
             self.isUseTool = true;
             console.log("使用道具");
-            self.ToolKind="Hammer"
-            if(Global.PlayData.PlayInfo.playTool.hammer>0){
+            self.ToolKind = "Hammer"
+            if (Global.PlayData.PlayInfo.playTool.hammer > 0) {
                 Global.PlayData.PlayInfo.playTool.hammer -= 1;
             }
-            else{
+            else {
                 Global.PlayData.PlayInfo.playTool.hammer = 0;
             }
             self.ToolNum[1].string = Global.PlayData.PlayInfo.playTool.hammer.toString();
@@ -1339,7 +1349,7 @@ export default class MainScene extends cc.Component {
                 hammerAni.play();
                 hammerAni.on("finished", () => {
                     self.AddNum(nodes[nodes.length - 1][0], null, addNum);
-                    if(nodes[nodes.length - 1][0].childrenCount>1){
+                    if (nodes[nodes.length - 1][0].childrenCount > 1) {
                         nodes[nodes.length - 1][0].children[1].removeFromParent();
                     }
                     nodes[nodes.length - 1][0].children[0].active = false;
@@ -1348,7 +1358,7 @@ export default class MainScene extends cc.Component {
                     hammer.destroy();
                     self.FilledGridCount += 1;
                     ConstantOther.GLOBAL_EVENTMGR.off("Hammer");
-                    for(let i=0;i<BtnNode.childrenCount;i++){
+                    for (let i = 0; i < BtnNode.childrenCount; i++) {
                         BtnNode.children[i].getComponent(cc.Button).enabled = true;
                     }
                 });
@@ -1358,7 +1368,7 @@ export default class MainScene extends cc.Component {
     }
 
     /**道具使用信息 */
-    ToolKind="";
+    ToolKind = "";
     UseToolListener(event, customEventTarget) {
         this.isUseTool = false;
         let tag = event.currentTarget.tag;
@@ -1366,24 +1376,24 @@ export default class MainScene extends cc.Component {
 
             return;
         }
-        switch(this.ToolKind){
-            case "oneKey":{
+        switch (this.ToolKind) {
+            case "oneKey": {
                 ConstantOther.GLOBAL_EVENTMGR.emit("oneKey", tag);
                 break;
             }
-            case "Hammer":{
+            case "Hammer": {
                 ConstantOther.GLOBAL_EVENTMGR.emit("Hammer", tag);
                 break;
             }
-            case "Fusion":{
+            case "Fusion": {
                 ConstantOther.GLOBAL_EVENTMGR.emit("Fusion", tag);
                 break;
             }
         }
     }
 
-    AndroidBackListen(){
-        if(cc.sys.os == cc.sys.OS_ANDROID){
+    AndroidBackListen() {
+        if (cc.sys.os == cc.sys.OS_ANDROID) {
             // cc.game.end();
             let className = "org/cocos2dx/javascript/AppActivity";
             let methodName = "showAlertDialog";
@@ -1392,40 +1402,38 @@ export default class MainScene extends cc.Component {
         }
     }
 
-    Stop(event,customEventTarget){
+    Stop(event, customEventTarget) {
         let self = this;
-        let node = cc.find("Canvas/StopNode");
-        node.zIndex = self.ToolZindex;
-        node.getChildByName("gameover").active=false;
-        node.children[3].children[0].active = true;
-        // node.children[1].children[0].getComponent(cc.Label).string = Global.PlayData.PlayInfo.playGold.toString();
-        switch(customEventTarget){
-            case "stop":{//游戏内的暂停按钮
-                node.active = true;
+        this.stopNode.zIndex = self.ToolZindex;
+        this.stopNode.getChildByName("gameover").active = false;
+        this.stopNode.children[3].children[0].active = true;
+        switch (customEventTarget) {
+            case "stop": {//游戏内的暂停按钮
+                this.stopNode.active = true;
                 break;
             }
-            case "reNew":{//游戏暂停的重新开始按钮
-                node.active = false;
+            case "reNew": {//游戏暂停的重新开始按钮
+                this.stopNode.active = false;
                 cc.sys.localStorage.removeItem(E_STORAGETYPE.TempData);
                 Global.TempData.tempPlayInfo.playScore = 0;
                 this.ScoreNode.children[1].getComponent(cc.Label).string = "0";
-                for(let i=1;i<this.allCellPos.length;i++){
-                    for(let j=0;j<this.allCellPos[i].length;j++){
+                for (let i = 1; i < this.allCellPos.length; i++) {
+                    for (let j = 0; j < this.allCellPos[i].length; j++) {
                         let child0 = this.allCellPos[i][j][0].children[0];
                         child0.active = false;
                         this.allCellPos[i][j][0].removeAllChildren();
                         this.allCellPos[i][j][0].addChild(child0);
                         this.allCellPos[i][j][0].isFilled = false;
-                        this.FilledGridCount=45;
+                        this.FilledGridCount = 45;
                     }
                 }
                 this.generateChess();
                 break;
             }
-            case "return":{//游戏暂停的返回首页按钮
-                for(let i=1;i<this.allCellPos.length;i++){
+            case "return": {//游戏暂停的返回首页按钮
+                for (let i = 1; i < this.allCellPos.length; i++) {
                     Global.GameData.chessPos[i] = new Array();
-                    for(let j=0;j<this.allCellPos[i].length;j++){
+                    for (let j = 0; j < this.allCellPos[i].length; j++) {
                         try {
                             Global.GameData.chessPos[i][j] = this.allCellPos[i][j][0].children[1].theNum;
                         } catch (error) {
@@ -1435,34 +1443,27 @@ export default class MainScene extends cc.Component {
                 }
                 let score = Global.PlayData.PlayInfo.playScore;
                 CommonFun.UpdateScore(score);
-                cc.sys.localStorage.setItem(E_STORAGETYPE.GameData,JSON.stringify(Global.GameData));
-                cc.sys.localStorage.setItem(E_STORAGETYPE.PlayData,JSON.stringify(Global.PlayData));
-                cc.sys.localStorage.setItem(E_STORAGETYPE.TempData,JSON.stringify(Global.TempData));
+                cc.sys.localStorage.setItem(E_STORAGETYPE.GameData, JSON.stringify(Global.GameData));
+                cc.sys.localStorage.setItem(E_STORAGETYPE.PlayData, JSON.stringify(Global.PlayData));
+                cc.sys.localStorage.setItem(E_STORAGETYPE.TempData, JSON.stringify(Global.TempData));
                 cc.director.loadScene("OpenScene");
                 break;
             }
-            case "continue":{//游戏暂停的继续游戏按钮
-                node.active = false;
+            case "continue": {//游戏暂停的继续游戏按钮
+                this.stopNode.active = false;
                 break;
-                
+
             }
-            case "help":{
-                // this.AlertNode.getComponent(cc.Label).string = "帮助资料正在绘制中";
-                // this.AlertNode.active = true;
-                // this.AlertNode.runAction(cc.fadeIn(1));
-                // this.AlertNode.zIndex =1111;
-                // this.scheduleOnce(()=>{
-                //     self.AlertNode.active = false;
-                //     self.AlertNode.opacity=255;
-                // },1.7);
-                this.HelpNode.x = 0;
-                this.HelpNode.zIndex=this.ToolZindex;
+            case "help": {
+                this.HelpNode.active = true;
+                this.stopNode.active = false;
+                this.HelpNode.zIndex = this.stopNode.zIndex;
                 break;
             }
         }
     }
-    
-    CloseHelp(){
-        this.HelpNode.x= 1440;
+
+    CloseHelp() {
+        this.HelpNode.active = false;
     }
 }

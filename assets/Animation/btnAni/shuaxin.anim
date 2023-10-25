@@ -12,34 +12,34 @@
       "New Sprite": {
         "comps": {},
         "props": {
-          "rotation": [
+          "angle": [
             {
               "frame": 0,
               "value": 0
             },
             {
               "frame": 0.05,
-              "value": 15
+              "value": -15
             },
             {
               "frame": 0.3333333333333333,
-              "value": -180
+              "value": 180
             },
             {
               "frame": 0.5833333333333334,
-              "value": -180
+              "value": 180
             },
             {
               "frame": 0.6333333333333333,
-              "value": -165
+              "value": 165
             },
             {
               "frame": 0.8333333333333334,
-              "value": -360
+              "value": 360
             },
             {
               "frame": 1,
-              "value": -360
+              "value": 360
             }
           ]
         }

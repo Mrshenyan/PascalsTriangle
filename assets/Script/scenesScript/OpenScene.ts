@@ -1,14 +1,16 @@
 import CommonFun from "../commonScript/CommonFun";
 import Global from "../commonScript/Global";
 import ConstantOther, { E_STORAGETYPE } from "../commonScript/ConstantOther";
+const wx=window["wx"];
 
 const {ccclass, property} = cc._decorator;
 
 @ccclass
 export default class OpenScene extends cc.Component {
 
+    @property(cc.WXSubContextView)
+    subContextV:cc.WXSubContextView=null;
 
-    res;
     onLoad () {
         let self = this;
         if(cc.sys.platform!=cc.sys.WECHAT_GAME){
@@ -21,7 +23,6 @@ export default class OpenScene extends cc.Component {
         if(pdata!=""||pdata!=null||pdata!=undefined){
             pdata = JSON.stringify(Global.PlayData);
         }
-        console.log("have err2")
         this.fillData(pdata,this.nickNode,this.avatarNode);
     }
 
@@ -47,10 +48,7 @@ export default class OpenScene extends cc.Component {
         }
 
         function  tryOne() {
-            console.log("have err1")
-            console.log(pdata);
             pdata = JSON.parse(pdata);
-            console.log("have err")
             let nick = pdata["PlayInfo"]["playNick"];
             if(nick==undefined||nick==""){
                 if(cc.sys.platform==cc.sys.WECHAT_GAME){
@@ -58,7 +56,6 @@ export default class OpenScene extends cc.Component {
                     console.log("mei you");
                 }
             }else{
-                console.log("you a" );
                 let url = pdata["PlayInfo"]["playAvatar"];
                 nickNode.getComponent(cc.Label).string = nick;
                 cc.loader.load({url,type:'png'},(err,res)=>{
@@ -88,9 +85,13 @@ export default class OpenScene extends cc.Component {
                         if(info.PlayInfo.playNick==""){
                             //show a msg -->you should sign in used your wechat account
                         }else{
-                            let subview = this.node.getChildByName("WXSubContextView");
+                            let subview = this.node.getChildByName("WXSubContextNode");
                             subview.active = true;
-                            wx.postMessage("friend_rank");
+                            // wx.postMessage("friend_rank");
+                            let wxContent = wx.getOpenDataContext()
+                            wxContent.postMessage({
+                                value: 'MESSAGE FROM MAIN PROJECT',
+                            });
                             
                         }
                     }else{
@@ -100,7 +101,7 @@ export default class OpenScene extends cc.Component {
                     break;
                 }
                 case "closerank":{
-                    let subview = this.node.getChildByName("WXSubContextView");
+                    let subview = this.node.getChildByName("WXSubContextNode");
                     subview.active = false;
                     break;
                 }

@@ -11,32 +11,32 @@
     "paths": {
       "z2": {
         "props": {
-          "rotation": [
+          "angle": [
             {
               "frame": 0,
               "value": 0
             },
             {
               "frame": 1,
-              "value": -360
+              "value": 360
             }
           ]
         }
       },
       "z1": {
         "props": {
-          "rotation": [
+          "angle": [
             {
               "frame": 0,
               "value": 0
             },
             {
               "frame": 0.5,
-              "value": 360
+              "value": -360
             },
             {
               "frame": 1,
-              "value": 720
+              "value": -720
             }
           ]
         }

@@ -1,6 +1,7 @@
 import MainScene from "../scenesScript/MainScene";
 import Global from "./Global";
 import ConstantOther, { E_STORAGETYPE } from "./ConstantOther";
+const wx = window["wx"];
 
 export default class CommonFun {
 
@@ -37,14 +38,14 @@ export default class CommonFun {
                 let p2 = tp.mul(2);
                 vRun = v.runAction(cc.bezierTo(.2, [p1, p2, tp]));
                 if(vRun.isDone){
-                    tipNode.setPosition(0,-366);
+                    tipNode.setPosition(airPos);
                 }
                 //tp是旋转之后的坐标。
                 // v.setPosition(tp)
             }
         });
         self.scheduleOnce(()=>{
-            self.RotateNode.setPosition(0,-366)
+            self.RotateNode.setPosition(airPos)
             self.RotateNode.on(cc.Node.EventType.TOUCH_END, self.MoveEnd,self.RotateNode.parent.getComponent("MainScene"));
             self.RotateNode.on(cc.Node.EventType.TOUCH_CANCEL, self.MoveEnd,self.RotateNode.parent.getComponent("MainScene"));
             self.RotateNode.on(cc.Node.EventType.TOUCH_MOVE, self.Move,self.RotateNode.parent.getComponent("MainScene"));
@@ -171,7 +172,7 @@ export default class CommonFun {
                                 console.log(err);
                                 return;
                             }
-                            Global.wx_PlayerInfo = userInfo;
+                            Global.PlayerInfo = userInfo;
                             self.res = userInfo;
                             avatarNode.getComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(texture);
                             ConstantOther.GLOBAL_EVENTMGR.emit("getInfo");

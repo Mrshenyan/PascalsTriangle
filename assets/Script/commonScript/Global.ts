@@ -15,7 +15,7 @@ export default class Global {
             playId:     "",
             playNick:   "",
             playAvatar: "",
-            playGold:   500000,
+            playGold:   1000,
             playScore:  0,
             /**道具个数 */
             playTool: {
@@ -30,7 +30,7 @@ export default class Global {
         chessPos:[]
     }
 
-    static wx_PlayerInfo={
+    static PlayerInfo={
         
     }
 }
