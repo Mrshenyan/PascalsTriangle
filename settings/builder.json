@@ -1,74 +1,55 @@
 {
-  "android-instant": {
-    "REMOTE_SERVER_ROOT": "",
-    "host": "",
-    "packageName": "org.cocos2d.demo",
-    "pathPattern": "",
-    "recordPath": "",
-    "scheme": "https",
-    "skipRecord": false
-  },
-  "appBundle": false,
-  "baidugame": {
-    "REMOTE_SERVER_ROOT": "",
-    "appid": "testappid",
-    "orientation": "portrait",
-    "subContext": ""
-  },
-  "encryptJs": true,
+  "title": "PT",
+  "packageName": "org.cocos2d.demo",
+  "startScene": "0c678d09-bddb-41fc-9e78-07bfa5981f13",
   "excludeScenes": [],
-  "fb-instant-games": {},
-  "includeSDKBox": false,
-  "inlineSpriteFrames": false,
-  "inlineSpriteFrames_native": true,
-  "md5Cache": true,
-  "mergeStartScene": false,
-  "optimizeHotUpdate": false,
   "orientation": {
-    "landscapeLeft": false,
-    "landscapeRight": false,
-    "portrait": true,
+    "landscapeRight": true,
+    "landscapeLeft": true,
+    "portrait": false,
     "upsideDown": false
   },
-  "packageName": "org.shunzhuo.PascalsTriangle",
-  "qqplay": {
-    "REMOTE_SERVER_ROOT": "",
-    "orientation": "portrait",
-    "zip": false
-  },
-  "startScene": "dbde7732-99ac-4c3b-ab0d-aa739a289fcb",
-  "title": "PascalsTriangle",
-  "webOrientation": "portrait",
-  "wechatgame": {
-    "REMOTE_SERVER_ROOT": "",
-    "appid": "ttd60ea0b34935bab0",
-    "orientation": "portrait",
-    "subContext": "PascalsTriangle_sub"
-  },
-  "xxteaKey": "7c6365f8-f666-4e",
-  "zipCompressJs": true,
+  "webOrientation": "auto",
+  "inlineSpriteFrames": true,
+  "inlineSpriteFrames_native": true,
   "mainCompressionType": "default",
-  "mainIsRemote": true,
+  "mainIsRemote": false,
+  "optimizeHotUpdate": false,
+  "md5Cache": true,
   "nativeMd5Cache": true,
+  "encryptJs": true,
+  "xxteaKey": "1ee40e2d-c61f-45",
+  "zipCompressJs": true,
+  "fb-instant-games": {},
   "android": {
-    "REMOTE_SERVER_ROOT": "",
-    "packageName": "org.cocos2d.demo"
+    "packageName": "org.cocos2d.demo",
+    "REMOTE_SERVER_ROOT": ""
   },
   "ios": {
+    "packageName": "org.cocos2d.demo",
     "REMOTE_SERVER_ROOT": "",
-    "ios_enable_jit": true,
-    "packageName": "org.cocos2d.demo"
+    "ios_enable_jit": true
   },
   "mac": {
-    "REMOTE_SERVER_ROOT": "",
-    "height": 720,
     "packageName": "org.cocos2d.demo",
-    "width": 1280
+    "REMOTE_SERVER_ROOT": "",
+    "width": 1280,
+    "height": 720
   },
   "win32": {
     "REMOTE_SERVER_ROOT": "",
-    "height": 720,
-    "width": 1280
+    "width": 1280,
+    "height": 720
   },
+  "android-instant": {
+    "packageName": "org.cocos2d.demo",
+    "REMOTE_SERVER_ROOT": "",
+    "pathPattern": "",
+    "scheme": "https",
+    "host": "",
+    "skipRecord": false,
+    "recordPath": ""
+  },
+  "appBundle": false,
   "agreements": {}
 }
