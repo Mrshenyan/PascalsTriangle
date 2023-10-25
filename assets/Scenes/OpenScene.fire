@@ -432,9 +432,7 @@
     "_fillStart": 0,
     "_fillRange": 0,
     "_isTrimmedMode": true,
-    "_atlas": {
-      "__uuid__": "a20f9164-d955-4ca8-8063-4ee0a5079347"
-    },
+    "_atlas": null,
     "_id": "c3eMerqWFBGYjjf8jS+wZ6"
   },
   {
@@ -555,9 +553,7 @@
     "_fillStart": 0,
     "_fillRange": 0,
     "_isTrimmedMode": true,
-    "_atlas": {
-      "__uuid__": "a20f9164-d955-4ca8-8063-4ee0a5079347"
-    },
+    "_atlas": null,
     "_id": "5c1Hv9dOxLeIDkDYuDYBzv"
   },
   {
@@ -1107,9 +1103,7 @@
     "_fillStart": 0,
     "_fillRange": 0,
     "_isTrimmedMode": true,
-    "_atlas": {
-      "__uuid__": "a20f9164-d955-4ca8-8063-4ee0a5079347"
-    },
+    "_atlas": null,
     "_id": "c9cKVoZY9I0Iz2lYmeq/tD"
   },
   {
@@ -1561,7 +1555,7 @@
         "__id__": 36
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [],
     "_prefab": null,
     "_opacity": 255,

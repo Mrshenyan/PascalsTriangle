@@ -42,6 +42,8 @@ export default class MainScene extends cc.Component {
     stopNode: cc.Node = null;
     @property(cc.Node)
     congratuNoe: cc.Node = null;
+    @property(cc.AudioSource)
+    bgm: cc.AudioSource = null;
     /**游戏区域的游戏格子，在这个类中用于存放格子的预制体的实例化，在循环创建格子的时候被复制。 */
     Cell: cc.Node = null;//
     /**第一个六边形的位置 */
@@ -90,7 +92,6 @@ export default class MainScene extends cc.Component {
         this.RotateNode.on(cc.Node.EventType.TOUCH_MOVE, this.Move, this);
         this.RotateNode.on(cc.Node.EventType.TOUCH_END, this.MoveEnd, this);
         this.RotateNode.on(cc.Node.EventType.TOUCH_CANCEL, this.moveCancle, this);
-
 
     }
     /**
@@ -220,6 +221,10 @@ export default class MainScene extends cc.Component {
         this.ScoreNode.children[1].getComponent(cc.Label).string = Global.PlayData.PlayInfo.playScore.toString();
 
         this.Baoxiang.active = !Global.PlayData.PlayInfo.dailyAward;
+    }
+
+    onDisable() {
+        this.bgm.stop();
     }
     /**游戏区生成函数 */
     generaterCell() {
@@ -1436,9 +1441,9 @@ export default class MainScene extends cc.Component {
         this.congratuNoe.active = false;
     }
 
-    onClickTest() {
-        //跑酷游戏自动生成好友跑酷榜
 
+
+    onClickTest() {
         //跑酷游戏自动生成好友跑酷榜
         tt.getImRankList({
             relationType: "friend", //只展示好友榜
@@ -1453,6 +1458,5 @@ export default class MainScene extends cc.Component {
                 console.log(`getImRankData fail res: `, res.errMsg);
             },
         });
-
     }
 }
