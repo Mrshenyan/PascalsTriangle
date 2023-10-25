@@ -4,19 +4,23 @@ export default class Global {
         tempPlayInfo: {
             playScore: 0,
         },
-        PlayerAvatar:{
-            Url:[],
-            Sp:[],
+        PlayerAvatar: {
+            Url: [],
+            Sp: [],
         },
     }
 
     static PlayData = {
         PlayInfo: {
-            playId:     "",
-            playNick:   "",
+            playId: "",
+            playNick: "",
             playAvatar: "",
-            playGold:   1000,
-            playScore:  0,
+            playGold: 1000,
+            playScore: 0,
+            dailyAward: {
+                hasGet: false,
+                time: ""
+            },
             /**道具个数 */
             playTool: {
                 oneKey: 1,
@@ -26,11 +30,11 @@ export default class Global {
         }
     }
 
-    static GameData={
-        chessPos:[]
+    static GameData = {
+        chessPos: []
     }
 
-    static PlayerInfo={
-        
+    static PlayerInfo = {
+
     }
 }

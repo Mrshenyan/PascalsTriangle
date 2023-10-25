@@ -40,6 +40,8 @@ export default class MainScene extends cc.Component {
     HelpNode: cc.Node = null;
     @property(cc.Node)
     stopNode: cc.Node = null;
+    @property(cc.Node)
+    congratuNoe: cc.Node = null;
     /**游戏区域的游戏格子，在这个类中用于存放格子的预制体的实例化，在循环创建格子的时候被复制。 */
     Cell: cc.Node = null;//
     /**第一个六边形的位置 */
@@ -67,6 +69,11 @@ export default class MainScene extends cc.Component {
     NewNumZindex: number = 11;
     ToolZindex: number = 1000;
     ScoreZindex: number = 13;
+    //移动的RotateNode显示在手指上
+    isAdd = false;
+    /**当前游戏的最大值 */
+    currentMaxNum = 3;
+    currentMinNum = 1;
 
     gameover = false;
     onLoad() {
@@ -86,6 +93,9 @@ export default class MainScene extends cc.Component {
 
 
     }
+    /**
+     * 初始化
+     */
     init() {
         let self = this;
         this.RotateNode.zIndex = 46;
@@ -209,6 +219,7 @@ export default class MainScene extends cc.Component {
         this.ToolNum[2].string = data.PlayInfo.playTool.reGene.toString();
         this.ScoreNode.children[1].getComponent(cc.Label).string = Global.PlayData.PlayInfo.playScore.toString();
 
+        this.Baoxiang.active = !Global.PlayData.PlayInfo.dailyAward;
     }
     /**游戏区生成函数 */
     generaterCell() {
@@ -402,9 +413,6 @@ export default class MainScene extends cc.Component {
         return ToolKindNodes;
     }
 
-    /**当前游戏的最大值 */
-    currentMaxNum = 3;
-    currentMinNum = 1;
     FindMinNum() {
         let tempMinnum = 0
         let isT = false;
@@ -596,8 +604,6 @@ export default class MainScene extends cc.Component {
         return newPool
     }
 
-    //移动的RotateNode显示在手指上
-    isAdd = false;
     /**
      * 移动函数
      * @param event 
@@ -658,7 +664,6 @@ export default class MainScene extends cc.Component {
         this.MoveEnd(event);
     }
 
-    isRota = false;
     /**
      * 移动结束
      * @param event 
@@ -1310,7 +1315,6 @@ export default class MainScene extends cc.Component {
 
     AndroidBackListen() {
         if (cc.sys.os == cc.sys.OS_ANDROID) {
-            // cc.game.end();
             let className = "org/cocos2dx/javascript/AppActivity";
             let methodName = "showAlertDialog";
             let methodSignature = "()V";
@@ -1357,8 +1361,7 @@ export default class MainScene extends cc.Component {
                         }
                     }
                 }
-                let score = Global.PlayData.PlayInfo.playScore;
-                CommonFun.UpdateScore(score);
+                CommonFun.UpdateScore();
                 cc.sys.localStorage.setItem(E_STORAGETYPE.GameData, JSON.stringify(Global.GameData));
                 cc.sys.localStorage.setItem(E_STORAGETYPE.PlayData, JSON.stringify(Global.PlayData));
                 cc.sys.localStorage.setItem(E_STORAGETYPE.TempData, JSON.stringify(Global.TempData));
@@ -1399,10 +1402,57 @@ export default class MainScene extends cc.Component {
         });
     }
 
+    /**
+     * 领取宝箱------>广告点
+     */
+    onClickBaoxiang() {
+        //需要一个恭喜获得弹窗，简单点
+        this.congratuNoe.active = true;
+        this.Baoxiang.active = false;
+        let date = new Date();
+        Global.PlayData.PlayInfo.dailyAward.hasGet = true;
+        Global.PlayData.PlayInfo.dailyAward.time = date.getUTCFullYear() + "-" + date.getUTCMonth() + "-" + date.getUTCDay();
+        Global.PlayData.PlayInfo.playTool.hammer += 3;
+        Global.PlayData.PlayInfo.playTool.oneKey += 1;
+        Global.PlayData.PlayInfo.playTool.reGene += 3;
+        cc.sys.localStorage.setItem(E_STORAGETYPE.PlayData, JSON.stringify(Global.PlayData));
+
+        let itemPre = cc.find("Canvas/CongratulateNode/itemPre");
+        let zdItem = cc.instantiate(itemPre);
+        zdItem.children[1].children[0].getComponent(cc.Label).string = "+1";
+        let czItem = cc.instantiate(itemPre);
+        czItem.children[1].children[0].getComponent(cc.Label).string = "+3";
+        let csItem = cc.instantiate(itemPre);
+        csItem.children[1].children[0].getComponent(cc.Label).string = "+3";
+
+        let itemRoot = cc.find("Canvas/CongratulateNode/itemNode");
+        itemRoot.removeAllChildren();
+        itemRoot.addChild(zdItem);
+        itemRoot.addChild(czItem);
+        itemRoot.addChild(csItem);
+    }
+
+    onClickCloseCongratu() {
+        this.congratuNoe.active = false;
+    }
 
     onClickTest() {
         //跑酷游戏自动生成好友跑酷榜
 
+        //跑酷游戏自动生成好友跑酷榜
+        tt.getImRankList({
+            relationType: "friend", //只展示好友榜
+            dataType: 0, //只圈选type为数字类型的数据进行排序
+            rankType: "month", //每月1号更新，只对当月1号到现在写入的数据进行排序
+            suffix: "分", //数据后缀，成绩后续默认带上 “分”
+            rankTitle: "rankTitle", //标题
+            success(res) {
+                console.log(`getImRankData success res: `, res);
+            },
+            fail(res) {
+                console.log(`getImRankData fail res: `, res.errMsg);
+            },
+        });
 
     }
 }

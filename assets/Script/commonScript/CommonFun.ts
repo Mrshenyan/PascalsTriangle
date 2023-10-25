@@ -1,6 +1,7 @@
 import MainScene from "../scenesScript/MainScene";
 import Global from "./Global";
 import ConstantOther, { E_STORAGETYPE } from "./ConstantOther";
+const tt = window["tt"];
 export default class CommonFun {
 
 
@@ -71,14 +72,28 @@ export default class CommonFun {
 
 
     static ShareGame() {
-        
+
     }
 
     /**
      * 分数上传函数
-     * @param score 需要上传的分数
      */
-    static UpdateScore(score: number) {
-        
+    static UpdateScore() {
+        //一个跑酷游戏，想要对用户的跑酷分数做排序
+
+        tt.setImRankData({
+            dataType: 0, //成绩为数字类型
+            value: Global.PlayData.PlayInfo.playScore, //该用户得了999999分
+            priority: 0, //dataType为数字类型，不需要权重，直接传0
+            extra: "extra",
+            success(res) {
+            },
+            fail(res) {
+                setTimeout(() => {
+                    CommonFun.UpdateScore();
+                }, 2000)
+            },
+        });
+
     }
 }
