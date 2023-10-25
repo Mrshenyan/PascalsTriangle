@@ -6,10 +6,10 @@
   "_duration": 2.316666666666667,
   "sample": 60,
   "speed": 1,
-  "wrapMode": "2",
+  "wrapMode": 2,
   "curveData": {
     "paths": {
-      "New Sprite": {
+      "Background/New Sprite": {
         "comps": {},
         "props": {
           "scaleX": [],

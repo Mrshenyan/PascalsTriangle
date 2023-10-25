@@ -2,6 +2,7 @@ import CommonFun from "../commonScript/CommonFun";
 import Global from "../commonScript/Global";
 import ConstantOther, { E_STORAGETYPE } from "../commonScript/ConstantOther";
 const wx=window["wx"];
+const tt=window["tt"];
 
 const {ccclass, property} = cc._decorator;
 
@@ -29,7 +30,23 @@ export default class OpenScene extends cc.Component {
     nickNode:cc.Node=null;
     avatarNode:cc.Node=null;
     start () {
-
+        tt.checkSession({
+            success() {
+              console.log(`session 未过期`);
+            },
+            fail() {
+              console.log(`session 已过期，需要重新登录`);
+              tt.login({
+                success: (res) => {
+                  console.log("登录成功", res);
+                },
+                fail: (err) => {
+                  console.log("登录失败", err);
+                },
+              });
+            },
+          });
+          
     }
 
     fillData(pdata:string,nickNode:cc.Node,avatarNode:cc.Node){
