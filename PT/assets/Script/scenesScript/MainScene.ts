@@ -2,7 +2,10 @@ import CommonFun from "../commonScript/CommonFun";
 import ConstantOther, { E_STORAGETYPE } from "../commonScript/ConstantOther";
 import Global from "../commonScript/Global";
 const wx = window["wx"];
+const tt = window["tt"];
 const { ccclass, property } = cc._decorator;
+
+
 
 @ccclass
 export default class MainScene extends cc.Component {
@@ -114,23 +117,20 @@ export default class MainScene extends cc.Component {
             if (cc.sys.platform == cc.sys.WECHAT_GAME) {
                 Global.PlayData["PlayInfo"]["playAvatar"] = url;
                 Global.PlayData["PlayInfo"]["playNick"] = nick;
-                // cc.sys.localStorage.setItem(E_STORAGETYPE,JSON.stringify(Global.PlayData));
                 wx.setStorage({
                     key: 'PlayData',
                     data: JSON.stringify(Global.PlayData),
                     success: (result) => {
-                        console.log(result);
                     },
                     fail: (result) => {
-                        console.log(result);
-                        cc.sys.localStorage.setItem(E_STORAGETYPE, JSON.stringify(Global.PlayData));
+                        cc.sys.localStorage.setItem(E_STORAGETYPE.PlayData, JSON.stringify(Global.PlayData));
                     },
                     complete: () => { }
                 });
             } else {
                 Global.PlayData["PlayInfo"]["playAvatar"] = url;
                 Global.PlayData["PlayInfo"]["playNick"] = nick;
-                cc.sys.localStorage.setItem(E_STORAGETYPE, JSON.stringify(Global.PlayData));
+                cc.sys.localStorage.setItem(E_STORAGETYPE.PlayData, JSON.stringify(Global.PlayData));
             }
         }
         let Tdata = cc.sys.localStorage.getItem(E_STORAGETYPE.TempData)
@@ -258,7 +258,6 @@ export default class MainScene extends cc.Component {
                     let cellPos: cc.Vec2 = new cc.Vec2();
                     let newCell = cc.instantiate(this.Cell);
                     newCell.zIndex = self.CellZindex;
-                    // newCell.on(cc.Node.EventType.TOUCH_START, this.CellClickCallBack, this, false);
                     cellPos.x = this.CellPOS.x + 2 * this.CellLine * Math.cos(Math.PI / 6) * i;
                     if (i != 0) {
                         cellPos.x += i * gap;
@@ -347,7 +346,6 @@ export default class MainScene extends cc.Component {
         let tag = event.currentTarget.tag;
         //这里的this是调用的时候传入的响应节点
         let nodes = this.FindCell(tag);//tag是点击的游戏格的位置属性和第几个
-        // console.log("you hit me!!!");
     }
 
     /**
@@ -481,7 +479,6 @@ export default class MainScene extends cc.Component {
         //生成棋子的时候需要判断游戏区域剩余的空格数
         switch (this.FilledGridCount) {
             case 0: {//gameover
-                // console.log("gameover");
                 this.gameover = true;
                 let node = cc.find("Canvas/StopNode");
                 node.x = 0;
@@ -495,15 +492,14 @@ export default class MainScene extends cc.Component {
                     value: Global.PlayData.PlayInfo.playScore
                 });
 
+
                 break;
             }
             case 1: {//generate one number grid，这里只生成一个棋子
-                // console.log("generate one number grid only");
                 geneFun()
                 break;
             }
             default: {//generate two number grid,要说明的是这里生成1个或者两个棋子
-                // console.log("generate two number grid");
                 geneFun();
                 break;
             }
@@ -542,11 +538,7 @@ export default class MainScene extends cc.Component {
         }
         function geneFun() {
             let genePos = new Array<cc.Vec2>(2);
-            // let GeneNumPool = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-            console.log(self.currentMinNum);
             let GeneNumPool = self.ChangeGeneMumPool(self.currentMinNum, self.currentMaxNum, self.FilledGridCount);
-            // console.log(GeneNumPool);
-            // let genedNum = parseInt((Math.random() * GeneNumPool.length).toString());
             let geneKind = 0;
             let genedNum = numPoolFun(GeneNumPool);
 
@@ -581,7 +573,6 @@ export default class MainScene extends cc.Component {
                 genedNumGrid[0].attr(tag);
                 num.theNum = GeneNumPool[genedNum];
                 genedNumGrid[0].attr(num);
-                console.log("生成的数字是：" + GeneNumPool[genedNum])
                 genedNumGrid[0].children[0].getComponent(cc.Label).string = GeneNumPool[genedNum].toString();
                 GeneNumPool.splice(genedNum, 1)
                 // genedNum = parseInt((Math.random() * GeneNumPool.length).toString());
@@ -596,13 +587,12 @@ export default class MainScene extends cc.Component {
                 genedNumGrid[1].attr(tag);
                 num.theNum = GeneNumPool[genedNum];
                 genedNumGrid[1].attr(num);
-                console.log("生成的数字是：" + GeneNumPool[genedNum])
                 genedNumGrid[1].children[0].getComponent(cc.Label).string = GeneNumPool[genedNum].toString();
                 GeneNumPool.splice(genedNum, 1)
                 genedNumGrid[0].x = 39;
                 genedNumGrid[1].x = -39
-                let temp1: cc.Vec2 = genedNumGrid[0].position;
-                let temp2: cc.Vec2 = genedNumGrid[1].position;
+                let temp1 = cc.v2(genedNumGrid[0].position);
+                let temp2 = cc.v2(genedNumGrid[1].position);
                 genePos[0] = temp1.rotate(rotate * Math.PI / 180);
                 genePos[1] = temp2.rotate(rotate * Math.PI / 180);
             }
@@ -704,7 +694,6 @@ export default class MainScene extends cc.Component {
      * @param event 
      */
     MoveEnd(event?) {
-        // console.log("this is move end")
         let self = this;
         let fpos = new Array();
         let startPos = event.touch._startPoint
@@ -716,27 +705,20 @@ export default class MainScene extends cc.Component {
         if (delta < 4) {
             let pos = this.RotateNode.position;
             CommonFun.RotaFun(this.RotateNode, undefined, self, pos);
-            // console.log("旋转");
         }
         else if (!this.FilledGrid) {//当前格子有数字，返回
-
             CommonFun.actionIsDone = true;
         }
         else if (this.FilledPos.length < 1) {//需要填充的格子不够，返回
-
             CommonFun.actionIsDone = true;
-            // console.log("ratote 3_2 pos is"+this.RotateNode.getPosition());
         } else {
             CommonFun.actionIsDone = true;
             for (let i = 0; i < this.FilledPos.length; i++) {
                 if (this.FilledPos[i] == null || this.FilledPos[i] == undefined) {
-                    // console.log("ratote 3_1 pos is"+this.RotateNode.getPosition());
                     //不在格子区，返回
                 }
                 else if (this.FilledPos.length != this.RotateNode.childrenCount) {
                     this.FilledPos[i].children[0].active = false;
-                    // console.log("ratote 4_1 pos is"+this.RotateNode.getPosition());
-
                 }
                 else if (!this.FilledPos[i].isFilled) {
                     this.FilledPos[i].isFilled = true;
@@ -747,11 +729,8 @@ export default class MainScene extends cc.Component {
                     this.FilledPos.shift();
                     i = -1;
                     this.FilledGridCount -= 1;
-
-                    // console.log("ratote 5 pos is"+this.RotateNode.getPosition());
                 } else {
                     this.FilledPos[i].children[0].active = false;
-                    // console.log("ratote 6 pos is"+this.RotateNode.getPosition());
                 }
             }
         }
@@ -832,30 +811,24 @@ export default class MainScene extends cc.Component {
         let LPulsR = leftIsFilled + rightIsFilled;
         let x = LPulsR | 0b0000//按位于之后结果为0表示左右都有空，即不需要消除
         if (!x) {
-            // console.log("X: " + x);
-            console.log("不需要消除")
             self.generateChess();
         } else {
             switch (x) {
                 case 0b0010: {
-                    console.log("左");
                     subElinate(theNode[0].children[1], leftNode[0].children[1], downLeftIsFilled);
                     break;
                 }
                 case 0b0001: {
-                    console.log("右");
                     subElinate(theNode[0].children[1], rightNode[0].children[1], downRightIsFilled);
                     break;
                 }
                 case 0b0011: {
-                    console.log("左右");
                     let lorR = Math.random();
                     LorRElinate(lorR);
                     break;
                 }
                 default: {
                     if (leftIsFilled && leftIsFilled > 5) {
-                        console.log("最左端");
                         if (rightIsFilled) {
                             try {
                                 subElinate(theNode[0].children[1], rightNode[0].children[1], downRightIsFilled);
@@ -870,7 +843,6 @@ export default class MainScene extends cc.Component {
                         }
                     }
                     else if (rightIsFilled && rightIsFilled > 5) {
-                        console.log("最右端");
                         if (leftIsFilled) {
                             try {
                                 subElinate(theNode[0].children[1], leftNode[0].children[1], downLeftIsFilled);
@@ -922,7 +894,6 @@ export default class MainScene extends cc.Component {
                         }
 
                     } else {
-                        console.log("下不是空的，直接消除");
                         let addNum = node1.theNum + node2.theNum;
                         let pos = node1.getPosition();
                         let tag = node1.tag;
@@ -939,13 +910,10 @@ export default class MainScene extends cc.Component {
                         }
                     }
                 } else {
-                    console.log("不相等，不可以相消");
                     self.generateChess();
                 }
             } else {
-                console.log("相等，可以相消");
                 if (!downFilled) {
-                    console.log("下是空的，可以填入");
                     let addNum = node1.theNum + node2.theNum;
                     self.AddNum(node1, node2);
                     let pos = node1.getPosition();
@@ -969,7 +937,6 @@ export default class MainScene extends cc.Component {
                     //     self.EliminateGene(node1.parent, node2.parent, addNum, tag);
                     // }
                 } else {
-                    console.log("下不是空的，直接消除");
                     let addNum = node1.theNum + node2.theNum;
                     let pos = node1.getPosition();
                     let tag = node1.tag;
@@ -1071,7 +1038,6 @@ export default class MainScene extends cc.Component {
     */
     EliminateGene(node1, node2, Addnum, tag?, geneOrNot?) {
         let self = this;
-        // console.log("the addNum is :" + Addnum);
         let geneID = [0, 1, 2, 3];
         /**用于加载新生成的颜色 */
         let colorNum = Addnum % 3;
@@ -1122,47 +1088,35 @@ export default class MainScene extends cc.Component {
                 } else {
                     let gold = parseInt(self.GoldNode.children[0].getComponent(cc.Label).string);
                     let buyonekey = 700
-                    console.log(gold)
-                    console.log(buyonekey)
-                    console.log("道具不够")
                     if (gold < buyonekey) {
-                        console.log("金币不够，无法购买")
                         self.AlertNode.active = true;
-                        self.AlertNode.runAction(cc.fadeOut(1));
-                        self.scheduleOnce(() => {
-                            self.AlertNode.active = false;
+                        self.AlertNode.opacity = 255;
+                        cc.tween(this.AlertNode).to(1, { opacity: 1 }).call(() => {
                             self.AlertNode.opacity = 255;
-                        }, 1);
+                            self.AlertNode.active = false;
+                        }).start()
                     } else {
                         self.ToolKind = "reGene"
-                        console.log("买道具");
                         Global.PlayData.PlayInfo.playGold -= ConstantOther.Buy_onKey;
                         self.GoldNode.children[0].getComponent(cc.Label).string = Global.PlayData.PlayInfo.playGold.toString();
                         let node = cc.instantiate(self.MunisGold);
                         node.getComponent(cc.Label).string = "-" + ConstantOther.Buy_onKey;
                         self.GoldNode.addChild(node);
-                        node.runAction(cc.spawn(cc.moveBy(1, 0, -100), cc.fadeOut(1)));
-                        self.scheduleOnce(() => {
-                            node.removeFromParent();
-                            node.destroy();
-                        }, 1.01);
-                        oneKeyE();
+                        cc.tween(node)
+                            .parallel(
+                                cc.tween(node).by(1, { position: cc.v3(0, -100, 0) }),
+                                cc.tween(node).to(1, { opacity: 1 }))
+                            .call(() => {
+                                node.removeFromParent();
+                                node.destroy();
+                                oneKeyE();
+                            }).start();
                     }
                 }
                 break;
             }
             case "2": {
-                // ConstantOther.GLOBAL_EVENTMGR.once("Fusion",(tag)=>{
-                //     console.log(tag);
-                //     let nodes = this.FindCell(tag);
-                //     console.log("i receive a massage what is 'Fusion'");
-                //     if(ConstantOther.GLOBAL_USEHAMMER.UseSN<2){
-                //         ConstantOther.GLOBAL_USEHAMMER.UseSN++;
-                //     }else{
 
-                //     }
-                //     //使用合成要考虑两次选择的是不是同一个，是不是有空的，是不是相邻的，还需要判断时间是否超时
-                // });
                 break;
             }
             case "3": {
@@ -1175,28 +1129,27 @@ export default class MainScene extends cc.Component {
                     self.ToolKind = "oneKey"
                 }
                 else {
-                    console.log("道具不够")
                     if (Global.PlayData.PlayInfo.playGold < ConstantOther.Buy_reGene) {
-                        console.log("金币不够，无法购买")
                         self.AlertNode.active = true;
-                        self.AlertNode.runAction(cc.fadeOut(1));
-                        self.scheduleOnce(() => {
-                            self.AlertNode.active = false;
+                        cc.tween(this.AlertNode).to(1, { opacity: 1 }).call(() => {
                             self.AlertNode.opacity = 255;
-                        }, 1);
+                            self.AlertNode.active = false;
+                        }).start()
                     } else {
                         self.ToolKind = "oneKey"
-                        console.log("买道具")
                         Global.PlayData.PlayInfo.playGold -= ConstantOther.Buy_reGene;
                         self.GoldNode.children[0].getComponent(cc.Label).string = Global.PlayData.PlayInfo.playGold.toString();
                         let node = cc.instantiate(self.MunisGold);
                         node.getComponent(cc.Label).string = "-" + ConstantOther.Buy_reGene;
                         self.GoldNode.addChild(node);
-                        node.runAction(cc.spawn(cc.moveBy(1, 0, -100), cc.fadeOut(1)));
-                        self.scheduleOnce(() => {
-                            node.removeFromParent();
-                            node.destroy();
-                        }, 1.01);
+                        cc.tween(node)
+                            .parallel(
+                                cc.tween(node).by(1, { position: cc.v3(0, -100, 0) }),
+                                cc.tween(node).to(1, { opacity: 1 }))
+                            .call(() => {
+                                node.removeFromParent();
+                                node.destroy();
+                            }).start();
                         this.generateChess();
                     }
                 }
@@ -1209,32 +1162,27 @@ export default class MainScene extends cc.Component {
                 } else {
                     let gold = parseInt(self.GoldNode.children[0].getComponent(cc.Label).string);
                     let buyhammer = 700
-                    // console.log(gold)
-                    // console.log(buyhammer)
-                    console.log("道具不够")
-                    // console.log(Global.PlayData.PlayInfo.playGold)
-                    // console.log(ConstantOther.Buy_hammer)
                     if (gold < buyhammer) {
-                        console.log("金币不够，无法购买")
                         self.AlertNode.active = true;
-                        self.AlertNode.runAction(cc.fadeOut(1));
-                        self.scheduleOnce(() => {
-                            self.AlertNode.active = false;
+                        cc.tween(this.AlertNode).to(1, { opacity: 1 }).call(() => {
                             self.AlertNode.opacity = 255;
-                        }, 1);
+                            self.AlertNode.active = false;
+                        }).start()
                     }
                     else {
-                        console.log("买道具")
                         Global.PlayData.PlayInfo.playGold -= ConstantOther.Buy_hammer;
                         self.GoldNode.children[0].getComponent(cc.Label).string = Global.PlayData.PlayInfo.playGold.toString();
                         let node = cc.instantiate(self.MunisGold);
                         node.getComponent(cc.Label).string = "-" + ConstantOther.Buy_hammer;
                         self.GoldNode.addChild(node);
-                        node.runAction(cc.spawn(cc.moveBy(1, 0, -100), cc.fadeOut(1)));
-                        self.scheduleOnce(() => {
-                            node.removeFromParent();
-                            node.destroy();
-                        }, 1.01);
+                        cc.tween(node)
+                            .parallel(
+                                cc.tween(node).by(1, { position: cc.v3(0, -100, 0) }),
+                                cc.tween(node).to(1, { opacity: 1 }))
+                            .call(() => {
+                                node.removeFromParent();
+                                node.destroy();
+                            }).start();
                         self.ToolKind = "Hammer"
                         hammerE()
                     }
@@ -1244,7 +1192,6 @@ export default class MainScene extends cc.Component {
             }
         }
         function oneKeyE() {
-            console.log("使用道具");
             self.ToolKind = "oneKey"
             if (self.isUseTool) {
                 return;
@@ -1262,7 +1209,6 @@ export default class MainScene extends cc.Component {
             self.ToolNum[0].string = Global.PlayData.PlayInfo.playTool.oneKey.toString();
             ConstantOther.GLOBAL_EVENTMGR.on("oneKey", (tag) => {
                 let nodes = self.FindCell(tag);
-                console.log(nodes);
                 let addNum = 0;
                 let centerEx;
                 let cellEx;
@@ -1330,7 +1276,6 @@ export default class MainScene extends cc.Component {
                 return;
             }
             self.isUseTool = true;
-            console.log("使用道具");
             self.ToolKind = "Hammer"
             if (Global.PlayData.PlayInfo.playTool.hammer > 0) {
                 Global.PlayData.PlayInfo.playTool.hammer -= 1;
@@ -1342,7 +1287,6 @@ export default class MainScene extends cc.Component {
             ConstantOther.GLOBAL_EVENTMGR.once("Hammer", (tag) => {
                 //使用锤子
                 let nodes = self.FindCell(tag);
-                console.log(nodes);
                 let hammer = cc.instantiate(self.HammerPre);
                 let addNum = nodes[nodes.length - 1][0].children[1].theNum;
                 hammer.parent = self.ToolNode;
@@ -1477,6 +1421,7 @@ export default class MainScene extends cc.Component {
             query: "",
             success() {
                 console.log("分享成功");
+
             },
             fail(e) {
                 console.log("分享失败");
@@ -1486,5 +1431,8 @@ export default class MainScene extends cc.Component {
 
 
     onClickTest() {
+        //跑酷游戏自动生成好友跑酷榜
+
+
     }
 }

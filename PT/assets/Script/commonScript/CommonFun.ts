@@ -26,35 +26,30 @@ export default class CommonFun {
             let vRun: cc.Action;
             //mul函数是系统函数：用于坐标分量乘上因子，所以因子不能丢，基本上是谁调用就用谁乘因子。也可以传入需要乘上的坐标参数
             if (rotate1 == undefined) {
-                let p1 = v.position.mul(2);
+                let p1 = cc.v2(v.position.mul(2));
                 //注：这里的rotate函数是旋转函数：参数是弧度，返回值是角度，注意与rotateTo和rotateBy函数区别
                 let tp = cc.v2(v.position).rotate(-60 * Math.PI / 180);
                 let p2 = tp.mul(2);
                 vRun = v.runAction(cc.bezierTo(.2, [p1, p2, tp]));
+                cc.tween(v).bezierTo(0.2, p1, p2, tp).call(() => {
+                    self.RotateNode.setPosition(airPos);
+                    CommonFun.actionIsDone = true;
+                }).start();
                 // v.setPosition(tp)
             }
             else {
                 // //注：这里的rotate函数是旋转函数：参数是弧度，返回值是角度，注意与rotateTo和rotateBy函数区别
-                let p1 = v.position.mul(2);
+                let p1 = cc.v2(v.position.mul(2));
                 //注：这里的rotate函数是旋转函数：参数是弧度，返回值是角度，注意与rotateTo和rotateBy函数区别
                 let tp = cc.v2(v.position).rotate(-60 * Math.PI / 180);
                 let p2 = tp.mul(2);
                 vRun = v.runAction(cc.bezierTo(.2, [p1, p2, tp]));
-                if (vRun.isDone) {
-                    tipNode.setPosition(airPos);
+                cc.tween(v).bezierTo(0.2, p1, p2, tp).call(() => {
+                    self.RotateNode.setPosition(airPos);
                     CommonFun.actionIsDone = true;
-                }
-                //tp是旋转之后的坐标。
-                // v.setPosition(tp)
+                }).start();
             }
         });
-        self.scheduleOnce(() => {
-            CommonFun.actionIsDone = true;//补丁
-            self.RotateNode.setPosition(airPos)
-            self.RotateNode.on(cc.Node.EventType.TOUCH_END, self.MoveEnd, self.RotateNode.parent.getComponent("MainScene"));
-            self.RotateNode.on(cc.Node.EventType.TOUCH_CANCEL, self.MoveEnd, self.RotateNode.parent.getComponent("MainScene"));
-            self.RotateNode.on(cc.Node.EventType.TOUCH_MOVE, self.Move, self.RotateNode.parent.getComponent("MainScene"));
-        }, 0.5);
     }
 
     /**
@@ -98,7 +93,6 @@ export default class CommonFun {
         if (cc.sys.platform == cc.sys.WECHAT_GAME) {
             wx.getSetting({
                 success: (result) => {
-                    console.log(result);
                     if (result.authSetting['scope.userInfo']) {
                         getUserInfo(nickNode, avatarNode);
                     } else {
@@ -121,7 +115,6 @@ export default class CommonFun {
 
         function Btn_getInfo() {
             if (cc.sys.platform == cc.sys.WECHAT_GAME) {
-                console.log("获取用户信息");
                 button = wx.createUserInfoButton({
                     type: 'text',
                     text: '',
@@ -140,7 +133,6 @@ export default class CommonFun {
                     }
                 });
                 button.onTap((res) => {
-                    console.log(res);
                     let userInfo = res.userInfo;
                     if (!userInfo) {
                         console.log(res.errMsg);
@@ -159,7 +151,6 @@ export default class CommonFun {
 
                             },
                             fail: (result) => {
-                                console.log(result);
                                 cc.sys.localStorage.setItem(E_STORAGETYPE, JSON.stringify(Global.PlayData));
                             },
                             complete: () => { }
@@ -195,8 +186,6 @@ export default class CommonFun {
                 lang: 'zh_CN',
                 timeout: 10000,
                 success: (result) => {
-                    console.log("getUserInfo");
-                    // console.log(result);
                     if (nickNode != undefined) {
                         nickNode.getComponent(cc.Label).stirng = result.userInfo.nickName;
                         let url = result.userInfo.avatarUrl;
@@ -231,10 +220,9 @@ export default class CommonFun {
                     { key: 'score', value: (String(score)) }
                 ],
                 success: res => {
-                    console.log("上传成功" + res);
+                    
                 },
                 fail: res => {
-                    console.log("上传失败" + res);
                 }
             })
         }
