@@ -1,7 +1,6 @@
 import CommonFun from "../commonScript/CommonFun";
 import Global from "../commonScript/Global";
 import ConstantOther, { E_STORAGETYPE } from "../commonScript/ConstantOther";
-const wx=window["wx"];
 const tt=window["tt"];
 
 const {ccclass, property} = cc._decorator;
@@ -9,8 +8,6 @@ const {ccclass, property} = cc._decorator;
 @ccclass
 export default class OpenScene extends cc.Component {
 
-    @property(cc.WXSubContextView)
-    subContextV:cc.WXSubContextView=null;
 
     onLoad () {
         let self = this;
@@ -19,7 +16,6 @@ export default class OpenScene extends cc.Component {
         }
         this.nickNode = cc.find("Canvas/PlayerNode").getChildByName("nickName");
         this.avatarNode = cc.find("Canvas/PlayerNode").getChildByName("avatar");
-        // CommonFun.getWxPlayer(self,this.nickNode,this.avatarNode);
         let pdata:string = cc.sys.localStorage.getItem(E_STORAGETYPE.PlayData);
         if(pdata!=""||pdata!=null||pdata!=undefined){
             pdata = JSON.stringify(Global.PlayData);
@@ -60,18 +56,13 @@ export default class OpenScene extends cc.Component {
                 pdata = JSON.stringify(Global.PlayData);
                 tryOne();
             }
-        }else{
-            CommonFun.getWxPlayer(this,this.nickNode,this.avatarNode);
         }
 
         function  tryOne() {
             pdata = JSON.parse(pdata);
             let nick = pdata["PlayInfo"]["playNick"];
             if(nick==undefined||nick==""){
-                if(cc.sys.platform==cc.sys.WECHAT_GAME){
-                    CommonFun.getWxPlayer(self,nickNode,avatarNode);
-                    console.log("mei you");
-                }
+                
             }else{
                 let url = pdata["PlayInfo"]["playAvatar"];
                 nickNode.getComponent(cc.Label).string = nick;
@@ -89,40 +80,5 @@ export default class OpenScene extends cc.Component {
 
     OpenMainScene(){
         cc.director.loadScene("MainScene");
-    }
-
-    /**排行榜信息 */
-    GameRank(event,customEventData){
-        if(cc.sys.platform==cc.sys.WECHAT_GAME){
-            switch(customEventData){
-                case "openrank":{
-                    let info = (cc.sys.localStorage.getItem(E_STORAGETYPE.PlayData));
-                    if(info!=""){
-                        info = JSON.parse(info);
-                        if(info.PlayInfo.playNick==""){
-                            //show a msg -->you should sign in used your wechat account
-                        }else{
-                            let subview = this.node.getChildByName("WXSubContextNode");
-                            subview.active = true;
-                            // wx.postMessage("friend_rank");
-                            let wxContent = wx.getOpenDataContext()
-                            wxContent.postMessage({
-                                value: 'MESSAGE FROM MAIN PROJECT',
-                            });
-                            
-                        }
-                    }else{
-                        //show a msg -->you should sign in used your wechat account
-                        console.log("is null");
-                    }
-                    break;
-                }
-                case "closerank":{
-                    let subview = this.node.getChildByName("WXSubContextNode");
-                    subview.active = false;
-                    break;
-                }
-            }
-        }
     }
 }

@@ -1,11 +1,8 @@
 import CommonFun from "../commonScript/CommonFun";
 import ConstantOther, { E_STORAGETYPE } from "../commonScript/ConstantOther";
 import Global from "../commonScript/Global";
-const wx = window["wx"];
 const tt = window["tt"];
 const { ccclass, property } = cc._decorator;
-
-
 
 @ccclass
 export default class MainScene extends cc.Component {
@@ -105,33 +102,9 @@ export default class MainScene extends cc.Component {
             data = JSON.parse(data);
             let nick = data["PlayInfo"]["playNick"];
             let url = data["PlayInfo"]["playAvatar"];
-            if (cc.sys.platform == cc.sys.WECHAT_GAME) {
-                this.nickNode.getComponent(cc.Label).string = nick;
-                cc.loader.load({ url, type: 'png' }, (err, res) => {
-                    if (err) {
-                        return;
-                    }
-                    self.avatarNode.getComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(res);
-                })
-            }
-            if (cc.sys.platform == cc.sys.WECHAT_GAME) {
-                Global.PlayData["PlayInfo"]["playAvatar"] = url;
-                Global.PlayData["PlayInfo"]["playNick"] = nick;
-                wx.setStorage({
-                    key: 'PlayData',
-                    data: JSON.stringify(Global.PlayData),
-                    success: (result) => {
-                    },
-                    fail: (result) => {
-                        cc.sys.localStorage.setItem(E_STORAGETYPE.PlayData, JSON.stringify(Global.PlayData));
-                    },
-                    complete: () => { }
-                });
-            } else {
-                Global.PlayData["PlayInfo"]["playAvatar"] = url;
-                Global.PlayData["PlayInfo"]["playNick"] = nick;
-                cc.sys.localStorage.setItem(E_STORAGETYPE.PlayData, JSON.stringify(Global.PlayData));
-            }
+            Global.PlayData["PlayInfo"]["playAvatar"] = url;
+            Global.PlayData["PlayInfo"]["playNick"] = nick;
+            cc.sys.localStorage.setItem(E_STORAGETYPE.PlayData, JSON.stringify(Global.PlayData));
         }
         let Tdata = cc.sys.localStorage.getItem(E_STORAGETYPE.TempData)
         if (Tdata == undefined || Tdata == "") {
@@ -217,9 +190,6 @@ export default class MainScene extends cc.Component {
             }
         }
 
-        if (cc.sys.platform != cc.sys.WECHAT_GAME) {
-            this.node.getChildByName("PlayerNode").active = false;
-        }
     }
 
     start() {
